@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "aquaverse",
+	"version": "${version}",
+	"name": "AquaVerse",
+	"description": "Adds new exciting aquatic content for Minecraft!",
+	"authors": [
+		"Dalerd"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/Dalerd/AquaVerse.git"
+	},
+	"license": "MPL-2.0",
+	"icon": "assets/aquaverse/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"net.dalerd.aquaverse.AquaVerse"
+		],
+		"fabric-datagen": [
+			"net.dalerd.aquaverse.AquaVerseDataGenerator"
+		],
+		"client": [
+			"net.dalerd.aquaverse.AquaVerseClient"
+		]
+	},
+	"mixins": [
+		"aquaverse.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.17.2",
+		"minecraft": "~1.21.1",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
