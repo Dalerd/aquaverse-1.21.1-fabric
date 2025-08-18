@@ -18,12 +18,12 @@ public class ModModelProvider extends FabricModelProvider {
 
     @Override
     public void generateBlockStateModels(BlockStateModelGenerator blockStateModelGenerator) {
-        // You don’t have custom blocks yet, so leave this empty for now
+
     }
 
     @Override
     public void generateItemModels(ItemModelGenerator itemModelGenerator) {
-        // Register the Dunkleosteus spawn egg so datagen will create its JSON automatically
+
         itemModelGenerator.register(ModItems.DUNKLEOSTEUS_SPAWN_EGG,
                 new Model(Optional.of(Identifier.of("item/template_spawn_egg")), Optional.empty()));
     }

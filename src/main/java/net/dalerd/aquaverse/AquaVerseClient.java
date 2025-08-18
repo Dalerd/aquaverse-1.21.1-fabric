@@ -11,8 +11,11 @@ public class AquaVerseClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
 
+        EntityModelLayerRegistry.registerModelLayer(
+                DunkleosteusModel.LAYER_LOCATION,
+                DunkleosteusModel::getTexturedModelData
+        );
 
-        EntityModelLayerRegistry.registerModelLayer(DunkleosteusModel.DUNKLEOSTEUS, DunkleosteusModel::getTexturedModelData);
         EntityRendererRegistry.register(ModEntities.DUNKLEOSTEUS, DunkleosteusRenderer::new);
     }
 }
