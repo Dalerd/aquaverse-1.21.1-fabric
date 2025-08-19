@@ -9,55 +9,94 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 
 public class DunkleosteusModel<T extends DunkleosteusEntity> extends SinglePartEntityModel<T> {
-    private final ModelPart dunkleosteus;
-    private final ModelPart head;
+    private final ModelPart root;
 
-    // ✅ Use Identifier.of instead of "new Identifier"
     public static final EntityModelLayer LAYER_LOCATION =
             new EntityModelLayer(Identifier.of("aquaverse", "dunkleosteus"), "main");
 
     public DunkleosteusModel(ModelPart root) {
-        // ✅ Fix: Blockbench export adds a "root" container
-        ModelPart rootPart = root.getChild("root");
-        this.dunkleosteus = rootPart.getChild("dunkleosteus");
-        this.head = this.dunkleosteus.getChild("head");
+        // ✅ Use full Blockbench hierarchy
+        this.root = root.getChild("root");
     }
 
     public static TexturedModelData getTexturedModelData() {
         ModelData modelData = new ModelData();
-        ModelPartData root = modelData.getRoot();
+        ModelPartData modelPartData = modelData.getRoot();
+        ModelPartData root = modelPartData.addChild("root", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
 
-        // ✅ Wrap in "root" to match Blockbench export
-        ModelPartData rootPart = root.addChild("root", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
+        ModelPartData dunkleosteus = root.addChild("dunkleosteus", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 0.0F, 0.0F));
 
-        ModelPartData dunkleosteus = rootPart.addChild("dunkleosteus",
-                ModelPartBuilder.create().uv(0, 0)
-                        .cuboid(-4.0F, -4.0F, -8.0F, 8.0F, 8.0F, 16.0F),
-                ModelTransform.pivot(0.0F, -4.0F, 0.0F));
+        ModelPartData torso = dunkleosteus.addChild("torso",
+                ModelPartBuilder.create().uv(0, 0).cuboid(-10.0F, -20.0F, 1.0F, 20.0F, 22.0F, 28.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(0.0F, 0.0F, 0.0F));
 
-        dunkleosteus.addChild("head",
-                ModelPartBuilder.create().uv(0, 24)
-                        .cuboid(-3.0F, -3.0F, -6.0F, 6.0F, 6.0F, 6.0F),
-                ModelTransform.pivot(0.0F, 0.0F, -8.0F));
+        ModelPartData tail = torso.addChild("tail",
+                ModelPartBuilder.create().uv(0, 50).cuboid(-7.0F, -9.0F, -5.0F, 14.0F, 16.0F, 21.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(0.0F, -7.0F, 29.0F));
 
-        return TexturedModelData.of(modelData, 64, 64);
+        ModelPartData tail_1 = tail.addChild("tail_1",
+                ModelPartBuilder.create().uv(96, 19).cuboid(-4.0F, -5.0F, -2.0F, 8.0F, 9.0F, 19.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(0.0F, 0.0F, 15.0F));
+
+        ModelPartData tail_fin = tail_1.addChild("tail_fin",
+                ModelPartBuilder.create().uv(56, 138).cuboid(-0.5F, -7.0F, -2.0F, 1.0F, 13.0F, 5.0F, new Dilation(0.0F))
+                        .uv(0, 106).cuboid(0.0F, -13.0F, -1.0F, 0.0F, 25.0F, 17.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(0.0F, 0.0F, 16.0F));
+
+        torso.addChild("right_fin_back",
+                ModelPartBuilder.create().uv(128, 130).cuboid(-8.0F, -1.0F, -1.0F, 8.0F, 1.0F, 7.0F, new Dilation(0.0F))
+                        .uv(88, 117).cuboid(-14.0F, -0.5F, -1.0F, 14.0F, 0.0F, 13.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(-10.0F, 0.0F, 23.0F));
+
+        ModelPartData fin_top = torso.addChild("fin_top", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, -20.0F, 19.0F));
+        fin_top.addChild("bb_main_r1",
+                ModelPartBuilder.create().uv(34, 130).cuboid(-6.0F, -8.0F, 3.0F, 1.0F, 15.0F, 10.0F, new Dilation(0.0F)),
+                ModelTransform.of(5.5F, -5.0F, -1.0F, -0.5236F, 0.0F, 0.0F));
+
+        ModelPartData left_fin_front = torso.addChild("left_fin_front",
+                ModelPartBuilder.create().uv(56, 130).cuboid(0.0F, -1.0F, -3.0F, 11.0F, 1.0F, 7.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(10.0F, 2.0F, 4.0F));
+        left_fin_front.addChild("bb_main_r2",
+                ModelPartBuilder.create().uv(68, 104).cuboid(-29.0F, 1.5F, 1.0F, 19.0F, 0.0F, 13.0F, new Dilation(0.0F)),
+                ModelTransform.of(-10.0F, 1.0F, -4.0F, 0.0F, 0.0F, -3.1416F));
+
+        torso.addChild("right_fin_front",
+                ModelPartBuilder.create().uv(92, 130).cuboid(-11.0F, -1.0F, -3.0F, 11.0F, 1.0F, 7.0F, new Dilation(0.0F))
+                        .uv(68, 104).cuboid(-19.0F, -0.5F, -3.0F, 19.0F, 0.0F, 13.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(-10.0F, 2.0F, 4.0F));
+
+        torso.addChild("left_fin_back",
+                ModelPartBuilder.create().uv(34, 106).cuboid(0.0F, -1.0F, -1.0F, 8.0F, 1.0F, 7.0F, new Dilation(0.0F))
+                        .uv(34, 117).cuboid(0.0F, -0.5F, -1.0F, 14.0F, 0.0F, 13.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(10.0F, 0.0F, 23.0F));
+
+        ModelPartData head = dunkleosteus.addChild("head", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, -8.0F, 0.0F));
+        head.addChild("upper_jaw",
+                ModelPartBuilder.create().uv(70, 50).cuboid(-9.0F, -11.0F, -15.0F, 18.0F, 11.0F, 19.0F, new Dilation(0.01F))
+                        .uv(96, 0).cuboid(-9.0F, -1.0F, -15.0F, 18.0F, 3.0F, 16.0F, new Dilation(-0.01F)),
+                ModelTransform.pivot(0.0F, 3.0F, 0.0F));
+
+        head.addChild("lower_jaw",
+                ModelPartBuilder.create().uv(70, 80).cuboid(-9.0F, 0.0F, -15.0F, 18.0F, 5.0F, 19.0F, new Dilation(0.0F))
+                        .uv(0, 87).cuboid(-9.0F, -2.0F, -15.0F, 18.0F, 3.0F, 16.0F, new Dilation(0.0F)),
+                ModelTransform.pivot(0.0F, 3.0F, 0.0F));
+
+        return TexturedModelData.of(modelData, 256, 256);
     }
 
     @Override
     public void setAngles(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        // TODO: add your animations here
-        this.head.yaw = netHeadYaw * ((float)Math.PI / 180F);
-        this.head.pitch = headPitch * ((float)Math.PI / 180F);
+        // TODO: add animations
     }
 
     @Override
     public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay,
                        int color) {
-        dunkleosteus.render(matrices, vertices, light, overlay, color);
+        root.render(matrices, vertices, light, overlay, color);
     }
 
     @Override
     public ModelPart getPart() {
-        return dunkleosteus;
+        return root;
     }
 }
