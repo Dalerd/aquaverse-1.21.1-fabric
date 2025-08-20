@@ -13,8 +13,6 @@ import net.minecraft.world.World;
 
 public class DunkleosteusEntity extends WaterCreatureEntity {
     public final AnimationState idleAnimationState = new AnimationState();
-    public AnimationState attackAnimationState;
-    public AnimationState waterIdleAnimationState;
     private int idleAnimationTimeout = 0;
 
     public DunkleosteusEntity(EntityType<? extends WaterCreatureEntity> entityType, World world) {
@@ -23,22 +21,22 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
 
     @Override
     protected void initGoals() {
-        // Swimming behavior
+        // Swimming
         this.goalSelector.add(0, new SwimGoal(this));
 
         // Melee attack
         this.goalSelector.add(1, new MeleeAttackGoal(this, 1.3D, true));
 
-        // Attack everything that lives (players + mobs + its own kind)
+        // Target all living
         this.targetSelector.add(1, new ActiveTargetGoal<>(this, LivingEntity.class, true));
 
-        // Wander & idle behavior
+        // Wander & look
         this.goalSelector.add(2, new WanderAroundFarGoal(this, 1.0D));
         this.goalSelector.add(3, new LookAroundGoal(this));
         this.goalSelector.add(4, new LookAtEntityGoal(this, PlayerEntity.class, 4.0F));
     }
 
-    public static DefaultAttributeContainer.Builder createAttributes(){
+    public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 40)
                 .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 80)
@@ -63,7 +61,6 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
     @Override
     public void tick() {
         super.tick();
-
         if (this.getWorld().isClient()) {
             this.setupAnimationStates();
         }
@@ -73,19 +70,34 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
     public void baseTick() {
         super.baseTick();
 
-        // Suffocation logic when out of water
+        // Suffocation if out of water
         if (!this.isTouchingWater() && this.isAlive()) {
             int air = this.getAir() - 1;
             this.setAir(air);
 
-            if (air <= -20) { // once air runs out, damage every tick
+            if (air <= -20) {
                 this.setAir(0);
                 this.damage(this.getDamageSources().drown(), 2.0F);
             }
         } else {
-            // reset air when in water
             this.setAir(this.getMaxAir());
         }
     }
-}
 
+    // ---------------------------
+    // Attack Animation Trigger
+    // ---------------------------
+    @Override
+    public boolean tryAttack(net.minecraft.entity.Entity target) {
+        boolean success = super.tryAttack(target);
+        if (success) {
+            this.handSwingTicks = 10; // keeps isAttacking() true for ~10 ticks
+        }
+        return success;
+    }
+
+    @Override
+    public boolean isAttacking() {
+        return this.handSwingTicks > 0;
+    }
+}

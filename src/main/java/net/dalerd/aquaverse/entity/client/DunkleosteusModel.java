@@ -3,6 +3,7 @@ package net.dalerd.aquaverse.entity.client;
 import net.dalerd.aquaverse.entity.custom.DunkleosteusEntity;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.VertexConsumer;
+import net.minecraft.client.render.entity.animation.Animation;
 import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
@@ -15,9 +16,9 @@ public class DunkleosteusModel<T extends DunkleosteusEntity> extends SinglePartE
             new EntityModelLayer(Identifier.of("aquaverse", "dunkleosteus"), "main");
 
     public DunkleosteusModel(ModelPart root) {
-        // ✅ Use full Blockbench hierarchy
-        this.root = root.getChild("root");
+        this.root = root;
     }
+
 
     public static TexturedModelData getTexturedModelData() {
         ModelData modelData = new ModelData();
@@ -85,13 +86,39 @@ public class DunkleosteusModel<T extends DunkleosteusEntity> extends SinglePartE
     }
 
     @Override
-    public void setAngles(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        // TODO: add animations
+    public void setAngles(T entity, float limbSwing, float limbSwingAmount,
+                          float ageInTicks, float netHeadYaw, float headPitch) {
+        // --- Water vs ground animations ---
+        if (entity.isTouchingWater()) {
+            if (limbSwingAmount > 0.1F) {
+                this.animateMovement(DunkleosteusAnimations.DUNK_WATER_SWIM,
+                        limbSwing, limbSwingAmount, 2.0f, 2.5f);
+            } else {
+                this.animate(DunkleosteusAnimations.DUNK_WATER_IDLE,
+                        ageInTicks, 1.0f);
+            }
+        } else {
+            if (limbSwingAmount > 0.1F) {
+                this.animateMovement(DunkleosteusAnimations.DUNK_GROUND_WALK,
+                        limbSwing, limbSwingAmount, 1.0f, 1.0f);
+            } else {
+                this.animate(DunkleosteusAnimations.DUNK_GROUND_IDLE,
+                        ageInTicks, 1.0f);
+            }
+        }
+
+        // --- Attack animation ---
+        if (entity.isAttacking()) {
+            this.animate(DunkleosteusAnimations.DUNK_ATTACK, ageInTicks, 1.0f);
+        }
+    }
+
+    private void animate(Animation dunkWaterIdle, float ageInTicks, float v) {
     }
 
     @Override
-    public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay,
-                       int color) {
+    public void render(MatrixStack matrices, VertexConsumer vertices,
+                       int light, int overlay, int color) {
         root.render(matrices, vertices, light, overlay, color);
     }
 
@@ -100,3 +127,4 @@ public class DunkleosteusModel<T extends DunkleosteusEntity> extends SinglePartE
         return root;
     }
 }
+
