@@ -13,6 +13,7 @@ public class ModItems {
     public static final Item DUNKLEOSTEUS_SPAWN_EGG = registerItem("dunkleosteus_spawn_egg",
             new SpawnEggItem(ModEntities.DUNKLEOSTEUS, 0x2F2F2F, 0xC2B280, new Item.Settings()));
 
+
     private static Item registerItem(String name, Item item) {
         return Registry.register(Registries.ITEM, Identifier.of(AquaVerse.MOD_ID, name), item);
     }

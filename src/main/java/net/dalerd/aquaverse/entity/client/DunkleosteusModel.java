@@ -3,33 +3,33 @@ package net.dalerd.aquaverse.entity.client;
 import net.dalerd.aquaverse.entity.custom.DunkleosteusEntity;
 import net.minecraft.client.model.*;
 import net.minecraft.client.render.VertexConsumer;
-import net.minecraft.client.render.entity.model.EntityModelLayer;
 import net.minecraft.client.render.entity.model.SinglePartEntityModel;
 import net.minecraft.client.util.math.MatrixStack;
-import net.minecraft.util.Identifier;
 
-public class DunkleosteusModel<T extends DunkleosteusEntity> extends SinglePartEntityModel<T> {
+public class DunkleosteusModel extends SinglePartEntityModel<DunkleosteusEntity> {
     private final ModelPart root;
 
-    public static final EntityModelLayer LAYER_LOCATION =
-            new EntityModelLayer(Identifier.of("aquaverse", "dunkleosteus"), "main");
-
     public DunkleosteusModel(ModelPart root) {
-        // ✅ Use full Blockbench hierarchy
         this.root = root.getChild("root");
     }
 
     public static TexturedModelData getTexturedModelData() {
         ModelData modelData = new ModelData();
         ModelPartData modelPartData = modelData.getRoot();
-        ModelPartData root = modelPartData.addChild("root", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 24.0F, 0.0F));
 
-        ModelPartData dunkleosteus = root.addChild("dunkleosteus", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 0.0F, 0.0F));
+        // ✅ Shift root pivot upward so Dunkleosteus sits correctly in hitbox
+        ModelPartData root = modelPartData.addChild("root", ModelPartBuilder.create(),
+                ModelTransform.pivot(0.0F, 24.0F, 0.0F)); // was 24.0F
 
+        ModelPartData dunkleosteus = root.addChild("dunkleosteus",
+                ModelPartBuilder.create(), ModelTransform.pivot(0.0F, 0.0F, 0.0F));
+
+        // === Torso ===
         ModelPartData torso = dunkleosteus.addChild("torso",
                 ModelPartBuilder.create().uv(0, 0).cuboid(-10.0F, -20.0F, 1.0F, 20.0F, 22.0F, 28.0F, new Dilation(0.0F)),
                 ModelTransform.pivot(0.0F, 0.0F, 0.0F));
 
+        // === Tail ===
         ModelPartData tail = torso.addChild("tail",
                 ModelPartBuilder.create().uv(0, 50).cuboid(-7.0F, -9.0F, -5.0F, 14.0F, 16.0F, 21.0F, new Dilation(0.0F)),
                 ModelTransform.pivot(0.0F, -7.0F, 29.0F));
@@ -70,6 +70,7 @@ public class DunkleosteusModel<T extends DunkleosteusEntity> extends SinglePartE
                         .uv(34, 117).cuboid(0.0F, -0.5F, -1.0F, 14.0F, 0.0F, 13.0F, new Dilation(0.0F)),
                 ModelTransform.pivot(10.0F, 0.0F, 23.0F));
 
+        // === Head ===
         ModelPartData head = dunkleosteus.addChild("head", ModelPartBuilder.create(), ModelTransform.pivot(0.0F, -8.0F, 0.0F));
         head.addChild("upper_jaw",
                 ModelPartBuilder.create().uv(70, 50).cuboid(-9.0F, -11.0F, -15.0F, 18.0F, 11.0F, 19.0F, new Dilation(0.01F))
@@ -85,14 +86,20 @@ public class DunkleosteusModel<T extends DunkleosteusEntity> extends SinglePartE
     }
 
     @Override
-    public void setAngles(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-        // TODO: add animations
-    }
+    public void setAngles(DunkleosteusEntity entity, float limbSwing, float limbSwingAmount,
+                          float ageInTicks, float netHeadYaw, float headPitch) {
 
-    @Override
-    public void render(MatrixStack matrices, VertexConsumer vertices, int light, int overlay,
-                       int color) {
-        root.render(matrices, vertices, light, overlay, color);
+        this.getPart().traverse().forEach(ModelPart::resetTransform);
+
+        if (entity.isTouchingWater()) {
+            this.animateMovement(DunkleosteusAnimations.DUNK_WATER_SWIM, limbSwing, limbSwingAmount, 2.0f, 2.5f);
+            this.updateAnimation(entity.waterIdleAnimationState, DunkleosteusAnimations.DUNK_WATER_IDLE, ageInTicks, 1.0f);
+        } else {
+            this.animateMovement(DunkleosteusAnimations.DUNK_GROUND_WALK, limbSwing, limbSwingAmount, 2.0f, 2.5f);
+            this.updateAnimation(entity.idleAnimationState, DunkleosteusAnimations.DUNK_GROUND_IDLE, ageInTicks, 1.0f);
+        }
+
+        this.updateAnimation(entity.attackAnimationState, DunkleosteusAnimations.DUNK_ATTACK, ageInTicks, 1.0f);
     }
 
     @Override
@@ -100,3 +107,7 @@ public class DunkleosteusModel<T extends DunkleosteusEntity> extends SinglePartE
         return root;
     }
 }
+
+
+
+
