@@ -13,9 +13,7 @@ import net.minecraft.entity.mob.MobEntity;
 import net.minecraft.entity.mob.WaterCreatureEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.vehicle.BoatEntity;
-import net.minecraft.loot.LootTables;
 import net.minecraft.registry.tag.FluidTags;
-import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -24,6 +22,7 @@ import net.minecraft.world.World;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.WeakHashMap;
+
 
 public class DunkleosteusEntity extends WaterCreatureEntity {
 
@@ -42,6 +41,7 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
         super(entityType, world);
         this.moveControl = new DunkleosteusMoveControl(this);
     }
+
 
     @Override
     protected EntityNavigation createNavigation(World world) {

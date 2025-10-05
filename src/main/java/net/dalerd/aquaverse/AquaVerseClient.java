@@ -1,10 +1,13 @@
 package net.dalerd.aquaverse;
 
+import net.dalerd.aquaverse.block.ModBlocks;
+import net.dalerd.aquaverse.block.custom.DunkleosteusSkullRenderer;
 import net.dalerd.aquaverse.entity.ModEntities;
 import net.dalerd.aquaverse.entity.client.DunkleosteusModel;
 import net.dalerd.aquaverse.entity.client.DunkleosteusRenderer;
 import net.dalerd.aquaverse.entity.client.ModModelLayers;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 
@@ -22,6 +25,8 @@ public class AquaVerseClient implements ClientModInitializer {
                 ModEntities.DUNKLEOSTEUS,
                 DunkleosteusRenderer::new
         );
+        // Dunkleosteus Skull BlockEntity
+        BlockEntityRendererRegistry.register(ModBlocks.DUNKLEOSTEUS_SKULL_ENTITY, DunkleosteusSkullRenderer::new);
     }
 }
 

@@ -1,5 +1,6 @@
 package net.dalerd.aquaverse;
 
+import net.dalerd.aquaverse.block.ModBlocks;
 import net.dalerd.aquaverse.entity.ModEntities;
 import net.dalerd.aquaverse.entity.custom.DunkleosteusEntity;
 import net.dalerd.aquaverse.item.custom.ModItems;
@@ -14,6 +15,10 @@ import net.minecraft.entity.mob.WaterCreatureEntity;
 import net.minecraft.world.Heightmap;
 import net.minecraft.world.biome.BiomeKeys;
 import net.minecraft.entity.SpawnRestriction;
+
+import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
+import net.dalerd.aquaverse.block.custom.DunkleosteusSkullRenderer;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,29 +28,27 @@ public class AquaVerse implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
-		// Register entities
-		ModEntities.registerModEntities();
-
-		// Register items & item groups (includes the Dunkleosteus spawn egg)
+		// Register everything in proper order
+		ModBlocks.registerModBlocks();
 		ModItems.registerModItems();
 		ModItemGroups.registerItemGroups();
+		ModEntities.registerModEntities();
 
-		// Register attributes for Dunkleosteus
+		// Register entity attributes
 		FabricDefaultAttributeRegistry.register(
 				ModEntities.DUNKLEOSTEUS,
 				DunkleosteusEntity.createAttributes()
 		);
 
-		// ----- Natural Spawning -----
-		// Ensure the entity can spawn in water
+		// Spawn restrictions
 		SpawnRestriction.register(
 				ModEntities.DUNKLEOSTEUS,
-				SpawnLocationTypes.IN_WATER, // ✅ fixed
+				SpawnLocationTypes.IN_WATER,
 				Heightmap.Type.MOTION_BLOCKING_NO_LEAVES,
 				WaterCreatureEntity::canSpawn
 		);
 
-		// Add spawns to specific ocean biomes
+		// Add spawn to biomes
 		BiomeModifications.addSpawn(
 				BiomeSelectors.includeByKey(
 						BiomeKeys.DEEP_OCEAN,
@@ -56,14 +59,16 @@ public class AquaVerse implements ModInitializer {
 				),
 				SpawnGroup.WATER_CREATURE,
 				ModEntities.DUNKLEOSTEUS,
-				5,  // weight: higher = more frequent
-				1,  // minimum group size
-				1   // maximum group size
+				5, 1, 1
 		);
 
-		LOGGER.info("AquaVerse initialized successfully with Dunkleosteus spawning!");
+		// ✅ Register Dunkleosteus Skull BlockEntity Renderer (CLIENT-SIDE)
+		BlockEntityRendererRegistry.register(ModBlocks.DUNKLEOSTEUS_SKULL_ENTITY, DunkleosteusSkullRenderer::new);
+
+		LOGGER.info("AquaVerse initialized successfully with Dunkleosteus and Skull Block!");
 	}
 }
+
 
 
 
