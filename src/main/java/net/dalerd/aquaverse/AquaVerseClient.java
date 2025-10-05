@@ -25,8 +25,10 @@ public class AquaVerseClient implements ClientModInitializer {
                 ModEntities.DUNKLEOSTEUS,
                 DunkleosteusRenderer::new
         );
-        // Dunkleosteus Skull BlockEntity
+        // ✅ Register the custom renderer for the Dunkleosteus Skull
         BlockEntityRendererRegistry.register(ModBlocks.DUNKLEOSTEUS_SKULL_ENTITY, DunkleosteusSkullRenderer::new);
+
+        AquaVerse.LOGGER.info("AquaVerse client initialized — custom renderers loaded!");
     }
 }
 

@@ -11,12 +11,8 @@ import net.minecraft.client.render.block.entity.BlockEntityRenderer;
 import net.minecraft.client.render.block.entity.BlockEntityRendererFactory;
 import net.minecraft.client.util.math.MatrixStack;
 
-import java.util.Random;
-
 @Environment(EnvType.CLIENT)
 public class DunkleosteusSkullRenderer implements BlockEntityRenderer<DunkleosteusSkullBlockEntity> {
-
-    private final Random random = new Random();
 
     public DunkleosteusSkullRenderer(BlockEntityRendererFactory.Context ctx) {}
 
@@ -24,13 +20,21 @@ public class DunkleosteusSkullRenderer implements BlockEntityRenderer<Dunkleoste
     public void render(DunkleosteusSkullBlockEntity entity, float tickDelta, MatrixStack matrices,
                        VertexConsumerProvider vertexConsumers, int light, int overlay) {
 
-        if (entity.getWorld() != null) {
-            BlockRenderManager brm = MinecraftClient.getInstance().getBlockRenderManager();
-            VertexConsumer vertexConsumer = vertexConsumers.getBuffer(RenderLayer.getCutout());
-            brm.renderBlock(entity.getCachedState(), entity.getPos(), entity.getWorld(), matrices, vertexConsumer, true, random);
-        }
+        if (entity == null || entity.getWorld() == null) return;
+
+        var world = entity.getWorld();
+        var state = entity.getCachedState();
+        var pos = entity.getPos();
+
+        BlockRenderManager brm = MinecraftClient.getInstance().getBlockRenderManager();
+        RenderLayer layer = RenderLayer.getCutout();
+        VertexConsumer vertexConsumer = vertexConsumers.getBuffer(layer);
+
+        // Correct render method signature for 1.21.x
+        brm.renderBlock(state, pos, world, matrices, vertexConsumer, true, world.getRandom());
     }
 }
+
 
 
 

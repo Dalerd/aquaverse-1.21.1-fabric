@@ -1,11 +1,11 @@
 {
 	"format_version": "1.9.0",
 	"credit": "Made with Blockbench",
-	"parent": "builtin/entity",
+	"parent": "block/block",
 	"texture_size": [256, 256],
 	"textures": {
 		"particle": "aquaverse:block/dunkleosteus_skull",
-		"texture": "aquaverse:block/dunkleosteus_skull.png"
+		"2": "aquaverse:block/dunkleosteus_skull"
 	},
 	"elements": [
 		{
