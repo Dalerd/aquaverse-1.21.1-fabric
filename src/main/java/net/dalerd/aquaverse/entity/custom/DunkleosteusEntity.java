@@ -42,6 +42,14 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
         this.moveControl = new DunkleosteusMoveControl(this);
     }
 
+    @Override
+    public net.minecraft.registry.RegistryKey<net.minecraft.loot.LootTable> getLootTableId() {
+        return net.minecraft.registry.RegistryKey.of(
+                net.minecraft.registry.RegistryKeys.LOOT_TABLE,
+                net.minecraft.util.Identifier.of("aquaverse", "entities/dunkleosteus")
+        );
+    }
+
 
     @Override
     protected EntityNavigation createNavigation(World world) {

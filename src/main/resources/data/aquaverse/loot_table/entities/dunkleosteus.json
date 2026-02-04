@@ -1,0 +1,44 @@
+{
+  "type": "minecraft:entity",
+  "pools": [
+    {
+      "rolls": 1,
+      "entries": [
+        { "type": "minecraft:item", "name": "aquaverse:dunkleosteus_skull" }
+      ]
+    },
+    {
+      "rolls": { "min": 0, "max": 3 },
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:bone" }
+      ]
+    },
+    {
+      "rolls": { "min": 0, "max": 2 },
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:prismarine_shard" }
+      ]
+    },
+    {
+      "rolls": { "min": 0, "max": 5 },
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:cod" }
+      ]
+    },
+    {
+      "rolls": { "min": 0, "max": 5 },
+      "entries": [
+        { "type": "minecraft:item", "name": "minecraft:salmon" }
+      ]
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
