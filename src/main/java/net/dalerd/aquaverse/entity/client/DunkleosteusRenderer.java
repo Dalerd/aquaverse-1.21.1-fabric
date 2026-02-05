@@ -14,7 +14,7 @@ public class DunkleosteusRenderer extends MobEntityRenderer<DunkleosteusEntity, 
     private static final Identifier TEXTURE = Identifier.of(AquaVerse.MOD_ID, "textures/entity/dunkleosteus/dunkleosteus.png");
 
     public DunkleosteusRenderer(EntityRendererFactory.Context context) {
-        super(context, new DunkleosteusModel(context.getPart(ModModelLayers.DUNKLEOSTEUS)), 2.2f);
+        super(context, new DunkleosteusModel(context.getPart(ModModelLayers.DUNKLEOSTEUS)), 0.9f);
     }
 
     @Override

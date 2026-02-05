@@ -23,14 +23,13 @@ import java.util.EnumSet;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-
 public class DunkleosteusEntity extends WaterCreatureEntity {
 
+    // === Animation states ===
     public final AnimationState idleAnimationState = new AnimationState();
     public final AnimationState walkAnimationState = new AnimationState();
     public final AnimationState attackAnimationState = new AnimationState();
     public final AnimationState waterIdleAnimationState = new AnimationState();
-
     private int idleAnimationTimeout = 0;
 
     // Track last attack times for non-player targets
@@ -50,7 +49,6 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
         );
     }
 
-
     @Override
     protected EntityNavigation createNavigation(World world) {
         return new SwimNavigation(this, world);
@@ -62,31 +60,30 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
         this.goalSelector.add(0, new ReturnToWaterGoal.DunkleosteusAttackGoal(this, 1.3));
 
         // Swimming / idle behavior
-        this.goalSelector.add(1, new ReturnToWaterGoal.DunkleosteusSwimGoal(this, 1.0)); // patrol swimming
+        this.goalSelector.add(0, new ReturnToWaterGoal.DunkleosteusSwimGoal(this, 1.0)); // patrol swimming
         this.goalSelector.add(2, new SwimAroundGoal(this, 1.0, 10));
         this.goalSelector.add(3, new WanderAroundGoal(this, 1.0));
 
         // Looking
         this.goalSelector.add(4, new LookAtEntityGoal(this, PlayerEntity.class, 12.0f));
         this.goalSelector.add(5, new LookAroundGoal(this));
-        this.goalSelector.add(6, new ReturnToWaterGoal(this, 1.2));
+        this.goalSelector.add(0, new ReturnToWaterGoal(this, 1.2));
 
-        // Targets
+        // Boat attack
         this.goalSelector.add(3, new ReturnToWaterGoal.AttackBoatGoal(this, 1.2));
-        this.targetSelector.add(1, new RevengeGoal(this));
-        this.targetSelector.add(0, new ActiveTargetGoal<>(this, PlayerEntity.class, true)); // Always attack players
-        this.targetSelector.add(2,
-                new ReturnToWaterGoal.ConditionalWaterMobTargetGoal<>(this, WaterCreatureEntity.class, NON_PLAYER_ATTACK_COOLDOWN));
-        this.targetSelector.add(3,
-                new ReturnToWaterGoal.ConditionalWaterMobTargetGoal<>(this, HostileEntity.class, NON_PLAYER_ATTACK_COOLDOWN));
 
+        // Targeting
+        this.targetSelector.add(1, new ActiveTargetGoal<>(this, PlayerEntity.class, true)); // always attack players
+        this.targetSelector.add(1, new RevengeGoal(this));
+        this.targetSelector.add(0, new ReturnToWaterGoal.ConditionalWaterMobTargetGoal<>(this, WaterCreatureEntity.class, NON_PLAYER_ATTACK_COOLDOWN));
+        this.targetSelector.add(0, new ReturnToWaterGoal.ConditionalWaterMobTargetGoal<>(this, HostileEntity.class, NON_PLAYER_ATTACK_COOLDOWN));
     }
 
     public static DefaultAttributeContainer.Builder createAttributes() {
         return MobEntity.createMobAttributes()
                 .add(EntityAttributes.GENERIC_MAX_HEALTH, 100.0D)
                 .add(EntityAttributes.GENERIC_MOVEMENT_SPEED, 0.35D)
-                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 80.0D)
+                .add(EntityAttributes.GENERIC_ATTACK_DAMAGE, 10.0D) // reduced from 80 -> 20
                 .add(EntityAttributes.GENERIC_FOLLOW_RANGE, 40.0D)
                 .add(EntityAttributes.GENERIC_KNOCKBACK_RESISTANCE, 1.0D)
                 .add(EntityAttributes.GENERIC_ARMOR, 20.0D);
@@ -135,7 +132,9 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
         return false;
     }
 
-    // ------------------- Return to water goal (improved) -------------------
+    // ===============================================
+    // ReturnToWaterGoal + AI nested classes
+    // ===============================================
     static class ReturnToWaterGoal extends Goal {
         private final DunkleosteusEntity mob;
         private final double crawlSpeed;
@@ -157,7 +156,6 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
         @Override
         public void start() {
             if (targetWater != null) {
-                // Start pathing toward the center of the water block
                 mob.getNavigation().startMovingTo(
                         targetWater.getX() + 0.5,
                         targetWater.getY() + 0.5,
@@ -176,42 +174,27 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
         @Override
         public void tick() {
             if (targetWater == null) return;
-
-            // If we are in water, we're done
             if (mob.getWorld().getFluidState(mob.getBlockPos()).isIn(FluidTags.WATER)) {
                 targetWater = null;
                 return;
             }
 
-            // If navigation couldn't find a path, try direct small-step movement toward target
             if (!mob.getNavigation().isFollowingPath()) {
                 double dx = (targetWater.getX() + 0.5) - mob.getX();
                 double dz = (targetWater.getZ() + 0.5) - mob.getZ();
                 double horizontalSq = dx * dx + dz * dz;
 
-                // when quite close horizontally, allow a small downward nudge to "step down" into the water
                 if (horizontalSq < 2.5D) {
-                    // small downward push to avoid getting stuck on edge
-                    if (!mob.getWorld().getFluidState(targetWater).isIn(FluidTags.WATER)) {
-                        // if somehow target block is not water anymore, cancel
-                        targetWater = null;
-                        return;
-                    }
-
-                    // Give a gentle velocity toward the center and slightly downward
                     Vec3d dir = new Vec3d(dx, (targetWater.getY() + 0.5) - mob.getY(), dz).normalize();
-                    double speed = 0.12;
-                    mob.setVelocity(mob.getVelocity().multiply(0.5).add(dir.multiply(speed)));
+                    mob.setVelocity(mob.getVelocity().multiply(0.5).add(dir.multiply(0.12)));
                     mob.velocityDirty = true;
                 } else {
-                    // If too far, try to nudge toward the target so navigation has something consistent
                     Vec3d dir = new Vec3d(dx, 0, dz).normalize();
                     mob.setVelocity(mob.getVelocity().multiply(0.6).add(dir.multiply(0.06)));
                     mob.velocityDirty = true;
                 }
             }
 
-            // Force mob to face the water target
             double dx = (targetWater.getX() + 0.5) - mob.getX();
             double dz = (targetWater.getZ() + 0.5) - mob.getZ();
             float targetYaw = (float) (MathHelper.atan2(dx, dz) * (180F / Math.PI));
@@ -219,22 +202,14 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
             mob.bodyYaw = targetYaw;
         }
 
-        /**
-         * Find the nearest water block whose top is reachable (air or water above it).
-         * This tries to return the "surface" block of the pool, which helps avoid
-         * getting stuck on an edge.
-         */
         private BlockPos findNearestSurfaceWater() {
             BlockPos mobPos = mob.getBlockPos();
             int radius = 8;
 
             for (int y = 2; y >= -2; y--) {
                 for (BlockPos checkPos : BlockPos.iterateOutwards(mobPos.add(0, y, 0), radius, 2, radius)) {
-                    if (mob.getWorld().getFluidState(checkPos).isIn(FluidTags.WATER)) {
-                        // Require 2x2 area of water
-                        if (is2x2Water(checkPos)) {
-                            return checkPos;
-                        }
+                    if (mob.getWorld().getFluidState(checkPos).isIn(FluidTags.WATER) && is2x2Water(checkPos)) {
+                        return checkPos;
                     }
                 }
             }
@@ -247,7 +222,6 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
                 for (int dz = 0; dz < 2; dz++) {
                     BlockPos check = pos.add(dx, 0, dz);
                     if (!world.getFluidState(check).isIn(FluidTags.WATER)) return false;
-                    // also check space above so mob can fit
                     if (!world.getFluidState(check.up()).isIn(FluidTags.WATER) && !world.isAir(check.up()))
                         return false;
                 }
@@ -255,17 +229,13 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
             return true;
         }
 
-
         // ------------------- Custom target goal for non-player water mobs -------------------
         static class ConditionalWaterMobTargetGoal<T extends LivingEntity> extends ActiveTargetGoal<T> {
 
             private final DunkleosteusEntity dunk;
             private final long cooldown;
 
-            public ConditionalWaterMobTargetGoal(DunkleosteusEntity mob,
-                                                 Class<T> targetClass,
-                                                 long cooldown) {
-                // use the (MobEntity, Class<T>, boolean) constructor
+            public ConditionalWaterMobTargetGoal(DunkleosteusEntity mob, Class<T> targetClass, long cooldown) {
                 super(mob, targetClass, true);
                 this.dunk = mob;
                 this.cooldown = cooldown;
@@ -281,12 +251,10 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
                         this.mob.getBoundingBox().expand(20.0D)
                 );
                 if (target == null) return false;
-
                 if (target instanceof PlayerEntity) return true;
 
                 long lastAttack = dunk.lastAttackTime.getOrDefault(target, 0L);
-                if (dunk.getHealth() <= dunk.getMaxHealth() / 2.0
-                        || dunk.getWorld().getTime() - lastAttack >= cooldown) {
+                if (dunk.getHealth() <= dunk.getMaxHealth() / 2.0 || dunk.getWorld().getTime() - lastAttack >= cooldown) {
                     dunk.lastAttackTime.put(target, dunk.getWorld().getTime());
                     this.target = target;
                     return true;
@@ -294,7 +262,6 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
                 return false;
             }
         }
-
 
         // ------------------- Attack goal -------------------
         static class DunkleosteusAttackGoal extends Goal {
@@ -334,13 +301,11 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
                 double dz = target.getZ() - dunk.getZ();
                 double distSq = dx * dx + dy * dy + dz * dz;
 
-                // Always swim toward prey using navigation
                 dunk.getNavigation().startMovingTo(target, speed);
                 dunk.getLookControl().lookAt(target, 45.0F, 45.0F);
                 dunk.setYaw(-((float) MathHelper.atan2(dx, dz)) * (180F / (float) Math.PI));
                 dunk.bodyYaw = dunk.getYaw();
 
-                // Bite after short delay
                 if (biteDelay > 0) {
                     biteDelay--;
                     if (biteDelay == 0 && distSq < getSquaredMaxAttackDistance(target) + 1.5D) {
@@ -349,7 +314,6 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
                     }
                 }
 
-                // Lunge only if very close (≈1–2 blocks) and cooldown ready
                 double reach = getSquaredMaxAttackDistance(target);
                 if (distSq <= (reach + 4.0D) && distSq > reach && lungeCooldown <= 0) {
                     Vec3d dir = new Vec3d(dx, dy, dz).normalize();
@@ -357,9 +321,8 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
                     dunk.attackAnimationState.start(dunk.age);
                     biteDelay = 10;
                     lungeCooldown = 25;
-                } else {
-                    if (distSq > reach + 4.0D) lungeCooldown = 0;
-                    else if (lungeCooldown > 0) lungeCooldown--;
+                } else if (lungeCooldown > 0) {
+                    lungeCooldown--;
                 }
             }
 
@@ -408,6 +371,7 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
             }
         }
 
+        // ------------------- Boat attack -------------------
         static class AttackBoatGoal extends Goal {
             private final DunkleosteusEntity mob;
             private final double speed;
@@ -429,7 +393,7 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
                     mob.getNavigation().startMovingTo(boat.getX(), boat.getY(), boat.getZ(), speed);
 
                     if (mob.squaredDistanceTo(boat) < 4.0) {
-                        boat.damage(mob.getDamageSources().mobAttack(mob), 20.0f); // big bite!
+                        boat.damage(mob.getDamageSources().mobAttack(mob), 20.0f); // big bite
                     }
                 }
             }
@@ -445,6 +409,8 @@ public class DunkleosteusEntity extends WaterCreatureEntity {
         }
     }
 }
+
+
 
 
 
